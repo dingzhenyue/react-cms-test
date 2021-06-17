@@ -2,13 +2,14 @@
  * @Description: 
  * @Author: dzy
  * @Date: 2021-06-11 15:55:34
- * @LastEditTime: 2021-06-17 15:25:42
+ * @LastEditTime: 2021-06-17 18:05:12
  * @LastEditors: dzy
  * @Reference: 
  */
 import React, { Component } from 'react'
 import { Card, Button, Table } from 'antd';
 import ButtonGroup from 'antd/lib/button/button-group';
+import { getArticleList } from '../../api/index'; 
 
 const dataSource = [
     {
@@ -56,11 +57,55 @@ const dataSource = [
         }
       },
   ];
+const mapFieldToChine = {
+  id: 'id',
+  title: '标题',
+  author: '发布者',
+  amount: '浏览次数',
+  createDate: '发布日期',
+  images: '图片'
+}
 class Article extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+          dataSource: [],
+          columns: [],
+          total: 0,
+        }
+    }
+    componentDidMount() {
+      getArticleList().then(res => {
+        let data = res.data.result.data;
+        // data.map(item => {
+        //   item.createDate = new Date(item.createDate * 1000);
+        // });
+        let first = data[0];
+        let keys = Object.keys(first);
+        let columns = keys.map(item => {
+          
+            return {
+              title: mapFieldToChine[item],
+              dataIndex: item,
+              key: item,
+            }
+        });
+        this.setState(
+          {
+            dataSource: data,
+            columns: columns,
+            total: res.data.result.total,
+          }
+        )
+        
+      }).catch(err => {
+          console.log(err);
+      });
+    }
     render() {
         return (
             <Card title="文章列表" extra={<Button>导出excel</Button>} style={{ width: '100%' }}>
-                <Table dataSource={dataSource} columns={columns} 
+                <Table dataSource={this.state.dataSource} columns={this.state.columns} 
                     pagination={ {total: 100} }
                 />;
             </Card>
